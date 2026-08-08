@@ -1,0 +1,66 @@
+.hero {
+  position: relative;
+  min-height: 520px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(20, 24, 28, 0.25),
+      rgba(20, 24, 28, 0.95)
+    ),
+    url('https://image.tmdb.org/t/p/original/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg');
+
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-content {
+  max-width: 800px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.hero-content h1,
+.hero-content h2 {
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.hero-content h1 {
+  margin-bottom: 8px;
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.hero-content h2 {
+  margin: 4px 0;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.hero-btn {
+  margin-top: 30px;
+  padding: 14px 24px;
+
+  border: none;
+  border-radius: 4px;
+
+  background: #00c030;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-btn:hover {
+  background: #00a82a;
+  transform: translateY(-1px);
+}
