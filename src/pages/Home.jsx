@@ -1,3 +1,5 @@
+import FeatureGrid from '../components/FeatureGrid'
+import PopularReviews from '../components/PopularReviews'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import MovieRow from '../components/MovieRow'
@@ -20,6 +22,14 @@ function Home() {
           title="Films you might like"
           movies={[...movies].reverse()}
         />
+        <PopularReviews />
+
+        <MovieRow
+          title="Recently reviewed"
+          movies={movies.slice(1,5)}
+        />
+
+        <FeatureGrid />
       </main>
     </>
   )

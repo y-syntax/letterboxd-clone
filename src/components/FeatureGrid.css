@@ -1,0 +1,50 @@
+.feature-section {
+  max-width: 960px;
+  margin: 55px auto;
+  padding: 0 20px;
+}
+
+.feature-section h2 {
+  color: #8c9297;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 9px;
+}
+
+.feature-card {
+  min-height: 104px;
+  background: #4b6072;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  box-sizing: border-box;
+}
+
+.feature-icon {
+  color: #b4c6d7;
+  font-size: 32px;
+  width: 52px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.feature-card p {
+  color: #dce5ed;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 800px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

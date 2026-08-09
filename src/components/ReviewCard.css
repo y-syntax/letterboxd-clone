@@ -1,0 +1,148 @@
+.review-card {
+  display: flex;
+  gap: 16px;
+
+  padding: 10px 0 20px;
+  margin-bottom: 18px;
+
+  border-bottom: 1px solid #293037;
+}
+
+
+/* POSTER */
+
+.review-poster {
+  width: 82px;
+  height: 123px;
+
+  flex-shrink: 0;
+
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+
+/* CONTENT */
+
+.review-content {
+  flex: 1;
+  min-width: 0;
+}
+
+
+/* MOVIE TITLE */
+
+.review-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.review-title h3 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-family: Georgia,serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.review-title span {
+  color: #7e95aa;
+  font-size: 14px;
+}
+
+
+/* USER */
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-top: 9px;
+}
+
+.user-avatar {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #52697c;
+  border-radius: 50%;
+
+  color: #d8e4ef;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.review-user strong {
+  color: #b7c8d8;
+  font-size: 12px;
+}
+
+.review-rating {
+  color: #00c030;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.like-icon {
+  color: #ff9d25;
+  font-size: 14px;
+}
+
+
+/* REVIEW TEXT */
+
+.review-content p {
+  margin: 15px 0 0;
+
+  color: #9db6cf;
+
+  font-family: Georgia,serif;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* LIKES */
+
+.review-likes {
+  margin-top: 15px;
+
+  color: #71869a;
+  font-size: 11px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 500px) {
+
+  .review-card {
+    gap: 12px;
+  }
+
+  .review-poster {
+    width: 65px;
+    height: 98px;
+  }
+
+  .review-title h3 {
+    font-size: 16px;
+  }
+
+  .review-title span {
+    font-size: 11px;
+  }
+
+  .review-content p {
+    font-size: 12px;
+  }
+
+}
