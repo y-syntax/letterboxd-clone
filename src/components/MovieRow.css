@@ -1,0 +1,51 @@
+.movie-section {
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 0 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.section-heading a {
+  color: #8c9297;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.section-heading a:hover {
+  color: #00c030;
+}
+
+.movie-row {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+
+  scrollbar-width: thin;
+  scrollbar-color: #394149 transparent;
+}
+
+.movie-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.movie-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.movie-row::-webkit-scrollbar-thumb {
+  background: #394149;
+  border-radius: 10px;
+}
