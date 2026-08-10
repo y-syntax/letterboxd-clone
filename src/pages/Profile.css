@@ -1,0 +1,513 @@
+.profile-page {
+  min-height: 100vh;
+  background: #14181c;
+  color: #ffffff;
+  padding-bottom: 80px;
+}
+
+/* ---------------- HEADER ---------------- */
+
+.profile-header {
+  max-width: 1000px;
+  margin: 0 auto;
+
+  padding: 55px 30px 35px;
+
+  display: flex;
+  gap: 30px;
+
+  border-bottom: 1px solid #2c3338;
+}
+
+.profile-avatar {
+  width: 110px;
+  height: 110px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #67849b;
+
+  color: #ffffff;
+
+  font-size: 45px;
+  font-weight: 700;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.profile-name-row h1 {
+  margin: 0;
+
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.username {
+  margin-top: 4px;
+
+  color: #8996a0;
+
+  font-size: 14px;
+}
+
+.profile-bio {
+  margin: 18px 0;
+
+  color: #b9c2c8;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.follow-button {
+  padding: 10px 20px;
+
+  border: 0;
+  border-radius: 4px;
+
+  background: #00b020;
+
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.follow-button:hover {
+  background: #00c526;
+}
+
+.follow-button.following {
+  background: #66747e;
+}
+
+/* ---------------- STATS ---------------- */
+
+.profile-stats {
+  display: flex;
+  gap: 35px;
+}
+
+.profile-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-stats strong {
+  color: #ffffff;
+
+  font-size: 19px;
+}
+
+.profile-stats span {
+  color: #81909b;
+
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+
+/* ---------------- TABS ---------------- */
+
+.profile-tabs {
+  max-width: 1000px;
+  margin: 0 auto;
+
+  padding: 0 30px;
+
+  display: flex;
+
+  overflow-x: auto;
+
+  border-bottom: 1px solid #2c3338;
+}
+
+.profile-tabs button {
+  padding: 18px 15px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #87939c;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.profile-tabs button:hover {
+  color: #ffffff;
+}
+
+.profile-tabs button.active {
+  color: #ffffff;
+
+  border-bottom: 3px solid #00b020;
+}
+
+
+/* ---------------- CONTENT ---------------- */
+
+.profile-content {
+  max-width: 1000px;
+  margin: 0 auto;
+
+  padding: 35px 30px;
+}
+
+.profile-section {
+  margin-bottom: 45px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.section-title h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-title button,
+.section-title span {
+  border: 0;
+
+  background: transparent;
+
+  color: #71808a;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.section-title button:hover,
+.section-title span:hover {
+  color: #ffffff;
+}
+
+
+/* ---------------- FAVORITES ---------------- */
+
+.favorite-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+.favorite-card {
+  overflow: hidden;
+
+  border-radius: 4px;
+
+  background: #1d2328;
+
+  aspect-ratio: 2 / 3;
+}
+
+.favorite-card img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  transition: transform 0.2s;
+}
+
+.favorite-card:hover img {
+  transform: scale(1.03);
+}
+
+
+/* ---------------- ACTIVITY ---------------- */
+
+.activity-list {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.activity-item {
+  display: flex;
+
+  gap: 15px;
+
+  padding: 12px;
+
+  border-radius: 4px;
+
+  background: #1b2024;
+}
+
+.activity-item img {
+  width: 70px;
+  height: 105px;
+
+  object-fit: cover;
+
+  border-radius: 3px;
+}
+
+.activity-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.activity-info h3 {
+  margin: 0;
+
+  font-size: 15px;
+}
+
+.activity-info p {
+  margin: 0;
+
+  color: #74808a;
+
+  font-size: 12px;
+}
+
+.activity-rating {
+  color: #00c030;
+
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.activity-info span {
+  margin-top: auto;
+
+  color: #69757e;
+
+  font-size: 11px;
+}
+
+
+/* ---------------- REVIEW ---------------- */
+
+.review-card {
+  display: flex;
+
+  gap: 22px;
+
+  padding: 20px;
+
+  background: #1b2024;
+
+  border-radius: 4px;
+}
+
+.review-poster img {
+  width: 100px;
+
+  aspect-ratio: 2 / 3;
+
+  object-fit: cover;
+
+  border-radius: 3px;
+}
+
+.review-content {
+  padding-top: 2px;
+}
+
+.review-content h3 {
+  margin: 0;
+
+  font-size: 20px;
+}
+
+.review-year {
+  margin: 4px 0;
+
+  color: #74808a;
+
+  font-size: 13px;
+}
+
+.review-stars {
+  margin: 8px 0;
+
+  color: #00c030;
+
+  letter-spacing: 2px;
+}
+
+.review-text {
+  max-width: 600px;
+
+  margin: 12px 0;
+
+  color: #bdc5ca;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.review-date {
+  color: #69757e;
+
+  font-size: 11px;
+}
+
+
+/* ---------------- WATCHLIST ---------------- */
+
+.watchlist-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.watchlist-card {
+  aspect-ratio: 2 / 3;
+
+  overflow: hidden;
+
+  border-radius: 4px;
+}
+
+.watchlist-card img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  transition: transform 0.2s;
+}
+
+.watchlist-card:hover img {
+  transform: scale(1.03);
+}
+
+
+/* ---------------- OTHER TABS ---------------- */
+
+.empty-profile-tab {
+  max-width: 1000px;
+
+  margin: 0 auto;
+
+  padding: 80px 30px;
+
+  text-align: center;
+}
+
+.empty-profile-tab h2 {
+  margin-bottom: 10px;
+
+  font-size: 22px;
+}
+
+.empty-profile-tab p {
+  color: #78858e;
+
+  font-size: 14px;
+}
+
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 700px) {
+
+  .profile-header {
+    padding: 35px 20px;
+
+    gap: 18px;
+  }
+
+  .profile-avatar {
+    width: 75px;
+    height: 75px;
+
+    font-size: 30px;
+  }
+
+  .profile-name-row {
+    align-items: flex-start;
+  }
+
+  .profile-name-row h1 {
+    font-size: 23px;
+  }
+
+  .follow-button {
+    padding: 8px 12px;
+  }
+
+  .profile-bio {
+    font-size: 13px;
+  }
+
+  .profile-stats {
+    gap: 20px;
+  }
+
+  .profile-tabs {
+    padding: 0 15px;
+  }
+
+  .profile-content {
+    padding: 30px 20px;
+  }
+
+  .favorite-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 7px;
+  }
+
+  .activity-list {
+    grid-template-columns: 1fr;
+  }
+
+  .watchlist-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+}
