@@ -6,7 +6,16 @@ function Navbar() {
       <div className="navbar-container">
 
         <div className="navbar-left">
-          <div className="logo">letterboxd</div>
+
+          <div className="logo">
+            <span className="logo-dots">
+              <span className="dot orange"></span>
+              <span className="dot green"></span>
+              <span className="dot blue"></span>
+            </span>
+
+            <span className="logo-text">letterboxd</span>
+          </div>
 
           <div className="nav-links">
             <a href="#">FILMS</a>
@@ -14,20 +23,23 @@ function Navbar() {
             <a href="#">MEMBERS</a>
             <a href="#">JOURNAL</a>
           </div>
+
         </div>
 
         <div className="navbar-right">
-          <button className="search-btn" aria-label="Search">
-            🔍
-          </button>
 
           <a href="#" className="login-link">
-            LOG IN
+            SIGN IN
           </a>
 
-          <a href="#" className="signup-btn">
-            SIGN UP
+          <a href="#" className="signup-link">
+            CREATE ACCOUNT
           </a>
+
+          <button className="search-btn" aria-label="Search">
+            <span>⌕</span>
+          </button>
+
         </div>
 
       </div>
