@@ -4,4 +4,4 @@ dist/
 .env.*
 !.env.example
 .DS_Store
-*.log
+*.log.vite/

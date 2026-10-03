@@ -1,9 +1,36 @@
+import { useState } from 'react'
 import './Signup.css'
 
 function Signup() {
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState({ email: '', username: '', password: '' })
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Backend connection will be added later
+    setError('')
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || data.details || 'Registration failed')
+      
+      setSuccess(true)
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('username', data.user.username)
+      setTimeout(() => {
+        window.location.href = '/' // Quick redirect to home
+      }, 1000)
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   return (
@@ -30,6 +57,9 @@ function Signup() {
 
             <form className="signup-form" onSubmit={handleSubmit}>
 
+              {success && <div style={{ color: '#4caf50', marginBottom: '1rem', fontWeight: 'bold' }}>Account created successfully!</div>}
+              {error && <div style={{ color: '#f44336', marginBottom: '1rem', fontWeight: 'bold' }}>{error}</div>}
+
               {/* Email */}
               <div className="form-group">
                 <label htmlFor="email">
@@ -41,6 +71,8 @@ function Signup() {
                   id="email"
                   name="email"
                   autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -56,6 +88,8 @@ function Signup() {
                   id="username"
                   name="username"
                   autoComplete="username"
+                  value={formData.username}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -71,6 +105,8 @@ function Signup() {
                   id="password"
                   name="password"
                   autoComplete="new-password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
               </div>
