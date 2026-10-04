@@ -5,230 +5,885 @@ import Navbar from '../components/Navbar'
 
 function Film() {
   const { id: tmdbId } = useParams()
+
   const [movie, setMovie] = useState(null)
-  const [localMovieId, setLocalMovieId] = useState(null)
-  const [interaction, setInteraction] = useState({ liked: false, watchlist: false, watched: false, rating: 0 })
+  const [similarMovies, setSimilarMovies] = useState([])
   const [allReviews, setAllReviews] = useState([])
+
+  const [showReviewComposer,setShowReviewComposer]=useState(false)
+  const [reviewText,setReviewText]=useState('')
+  const [reviewRating,setReviewRating]=useState(0)
+  const [reviewLiked,setReviewLiked]=useState(false)
+  const [reviewWatched,setReviewWatched]=useState(true)
+  const [reviewDate,setReviewDate]=useState(
+    new Date().toISOString().split('T')[0]
+  )
+  const [reviewTags,setReviewTags]=useState('')
+  const [reviewSpoiler,setReviewSpoiler]=useState(false)
+  const [submittingReview,setSubmittingReview]=useState(false)
+
   const token = localStorage.getItem('token')
 
   const fetchReviews = () => {
-    fetch(`http://localhost:5000/api/interactions/movie/${tmdbId}/reviews`)
+    fetch(
+      `http://localhost:5000/api/interactions/movie/${tmdbId}/reviews`
+    )
       .then(res => res.json())
-      .then(data => setAllReviews(Array.isArray(data) ? data : []))
-      .catch(console.error)
+      .then(data => {
+        setAllReviews(Array.isArray(data) ? data : [])
+      })
+      .catch(() => setAllReviews([]))
   }
 
   useEffect(() => {
-    // 1. Fetch TMDB data
-    fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits`)
-      .then(res => res.json())
-      .then(data => {
-        setMovie(data)
-        
-        // 2. Fetch existing interactions (Watchlist, Liked, etc.) using tmdbId directly!
-        if (token) {
-          fetch(`http://localhost:5000/api/interactions/${tmdbId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          })
-          .then(r => r.json())
-          .then(intData => {
-            if (intData.userId) { // if interaction document exists
-              setInteraction(intData)
-            }
-          })
-          .catch(err => console.error("Error fetching interactions", err))
+    const fetchMovie = async () => {
+      try {
+        const response = await fetch(
+          `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits`
+        )
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(
+            data.status_message || 'Failed to fetch movie'
+          )
         }
-        
-        fetchReviews()
-      })
-  }, [tmdbId, token])
 
-  const toggleInteraction = (field) => {
-    if (!token) return alert("Please log in first to use this feature!");
-    
-    // Optimistic UI update
-    const newValue = !interaction[field];
-    setInteraction(prev => ({ ...prev, [field]: newValue }));
+        setMovie(data)
+      } catch (error) {
+        console.error('Movie fetch error:', error)
+      }
+    }
 
-    // Send to backend using the tmdbId directly
-    fetch('http://localhost:5000/api/interactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({
-        movieId: tmdbId, // Using TMDB ID to save space!
-        [field]: newValue
-      })
-    })
+    const fetchSimilarMovies = async () => {
+      try {
+        const response = await fetch(
+          `https://api.themoviedb.org/3/movie/${tmdbId}/recommendations?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US&page=1`
+        )
+
+        const data = await response.json()
+
+        setSimilarMovies(
+          Array.isArray(data.results)
+            ? data.results.slice(0, 6)
+            : []
+        )
+      } catch (error) {
+        console.error('Similar movies error:', error)
+        setSimilarMovies([])
+      }
+    }
+
+    fetchMovie()
+    fetchSimilarMovies()
+    fetchReviews()
+  }, [tmdbId])
+
+  const handleSignIn = () => {
+    window.location.href = '/login'
   }
 
-  const handleReview = () => {
-    if (!token) return alert("Please log in first!");
-    const reviewText = prompt("Write your review for " + movie.title + ":");
-    if (reviewText) {
-      fetch('http://localhost:5000/api/interactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ movieId: tmdbId, review: reviewText })
-      }).then(() => {
-        alert("Review successfully saved to database!");
-        fetchReviews();
-      });
+  const openReviewComposer = () => {
+    if (!token) {
+      alert('Please log in first!')
+      return
+    }
+
+    setReviewText('')
+    setReviewRating(0)
+    setReviewLiked(false)
+    setReviewWatched(true)
+    setShowReviewComposer(true)
+  }
+
+  const closeReviewComposer = () => {
+    if (submittingReview) {
+      return
+    }
+
+    setShowReviewComposer(false)
+  }
+
+  const submitReview = async event => {
+    event.preventDefault()
+
+    if (!token) {
+      alert('Please log in first!')
+      return
+    }
+
+    if (!reviewText.trim()) {
+      alert('Please write your review.')
+      return
+    }
+
+    setSubmittingReview(true)
+
+    try {
+      const response = await fetch(
+        'http://localhost:5000/api/interactions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            movieId: tmdbId,
+            rating: reviewRating,
+            liked: reviewLiked,
+            watched: reviewWatched,
+            review: reviewText.trim()
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.error || 'Failed to save review'
+        )
+      }
+
+      setShowReviewComposer(false)
+      setReviewText('')
+      setReviewRating(0)
+      setReviewLiked(false)
+      setReviewWatched(true)
+
+      fetchReviews()
+    } catch (error) {
+      console.error('Review submission error:', error)
+      alert('Could not save your review. Please try again.')
+    } finally {
+      setSubmittingReview(false)
     }
   }
 
-  const handleLikeReview = (reviewId) => {
-    if (!token) return alert("Please log in to like reviews!");
-    fetch(`http://localhost:5000/api/interactions/${reviewId}/like`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).then(() => fetchReviews());
+  const handleLikeReview = reviewId => {
+    if (!token) {
+      alert('Please log in to like reviews!')
+      return
+    }
+
+    fetch(
+      `http://localhost:5000/api/interactions/${reviewId}/like`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    )
+      .then(() => fetchReviews())
+      .catch(console.error)
   }
 
-  const handleReplyReview = (reviewId) => {
-    if (!token) return alert("Please log in to reply!");
-    const text = prompt("Write a reply:");
-    if (text) {
-      fetch(`http://localhost:5000/api/interactions/${reviewId}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ text })
-      }).then(() => fetchReviews());
+  const handleReplyReview = reviewId => {
+    if (!token) {
+      alert('Please log in to reply!')
+      return
     }
+
+    const text = prompt('Write a reply:')
+
+    if (!text?.trim()) {
+      return
+    }
+
+    fetch(
+      `http://localhost:5000/api/interactions/${reviewId}/reply`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          text: text.trim()
+        })
+      }
+    )
+      .then(() => fetchReviews())
+      .catch(console.error)
+  }
+
+  const director =
+    movie?.credits?.crew?.find(
+      member => member.job === 'Director'
+    )?.name || 'Unknown'
+
+  const cast =
+    movie?.credits?.cast?.slice(0, 18) || []
+
+  const writers =
+    movie?.credits?.crew
+      ?.filter(
+        member =>
+          member.job === 'Writer' ||
+          member.job === 'Screenplay' ||
+          member.job === 'Story'
+      )
+      .slice(0, 10) || []
+
+  const formatCount = count => {
+    if (!count && count !== 0) {
+      return '0'
+    }
+
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`
+    }
+
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`
+    }
+
+    return count.toLocaleString()
   }
 
   if (!movie) {
     return (
       <div className="film-page">
         <Navbar />
-        <div style={{ color: 'white', padding: '150px 20px', textAlign: 'center' }}>
+
+        <div className="film-loading">
           <h2>Loading film details...</h2>
         </div>
       </div>
     )
   }
 
-  const director = movie.credits?.crew?.find(c => c.job === 'Director')?.name || 'Unknown'
-
   return (
     <div className="film-page">
       <Navbar />
-      
-      <div className="film-backdrop">
+
+      <section className="film-hero">
         {movie.backdrop_path && (
-          <img 
-            src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`} 
-            alt="Backdrop" 
-            className="backdrop-image"
+          <img
+            className="film-backdrop"
+            src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
+            alt=""
           />
         )}
-        <div className="backdrop-gradient"></div>
-      </div>
-      
-      <main className="film-content">
-        <div className="film-sidebar">
-          <div className="poster-container">
+
+        <div className="film-hero-overlay"></div>
+      </section>
+
+      <main className="film-layout">
+        <aside className="film-sidebar">
+          <div className="film-poster-wrap">
             {movie.poster_path ? (
-              <img 
-                className="film-poster" 
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} 
-                alt="Poster" 
+              <img
+                className="film-poster"
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={`${movie.title} poster`}
               />
-            ) : <div style={{width: '100%', aspectRatio: '2/3', background: '#222'}}></div>}
+            ) : (
+              <div className="poster-placeholder"></div>
+            )}
           </div>
+
           <div className="film-stats">
-            <span className="stat-item"><span className="icon green">👁</span> {movie.popularity ? Math.round(movie.popularity) + 'K' : '10K'}</span>
-            <span className="stat-item"><span className="icon orange">♥</span> 83K</span>
-            <span className="stat-item"><span className="icon blue">◷</span> 153K</span>
-          </div>
-          
-          <div className="where-to-watch">
-            <button className="watch-btn">WHERE TO WATCH</button>
-            <button className="trailer-btn">Trailer</button>
-          </div>
-        </div>
+            <span>
+              <b className="stat-eye">●</b>
+              {formatCount(movie.popularity)}
+            </span>
 
-        <div className="film-main-info">
-          <div className="film-header">
-            <h1 className="film-title">{movie.title}</h1>
-            <span className="film-year">{movie.release_date?.split('-')[0]}</span>
-            <span className="film-director">Directed by <a href="#">{director}</a></span>
+            <span>
+              <b className="stat-fan">■</b>
+              {formatCount(movie.vote_count)}
+            </span>
+
+            <span>
+              <b className="stat-like">♥</b>
+              {movie.vote_average
+                ? movie.vote_average.toFixed(1)
+                : '0.0'}
+            </span>
           </div>
 
-          <p className="film-tagline">{movie.tagline}</p>
-          <p className="film-description">
+          <div className="watch-panel">
+            <div className="watch-header">
+              <span>WHERE TO WATCH</span>
+
+              <button type="button">
+                ▶ Trailer
+              </button>
+            </div>
+
+            <div className="watch-row">
+              <span>▶ Google Play</span>
+              <small>IN</small>
+              <b>BUY</b>
+            </div>
+
+            <div className="watch-row">
+              <span>▶ Google Play</span>
+              <small>US</small>
+              <b>RENT</b>
+              <b>BUY</b>
+            </div>
+
+            <div className="watch-row">
+              <span>● Amazon Video</span>
+              <small>US</small>
+              <b>RENT</b>
+              <b>BUY</b>
+            </div>
+
+            <div className="watch-row">
+              <span>● Netflix</span>
+              <small>IN</small>
+              <b>PLAY</b>
+            </div>
+
+            <div className="watch-more">
+              Show 3 more
+            </div>
+          </div>
+        </aside>
+
+        <section className="film-main">
+          <header className="film-title-row">
+            <h1>{movie.title}</h1>
+
+            <a href="#">
+              {movie.release_date?.split('-')[0]}
+            </a>
+
+            <span>
+              Directed by <strong>{director}</strong>
+            </span>
+          </header>
+
+          {movie.tagline && (
+            <p className="film-tagline">
+              {movie.tagline}
+            </p>
+          )}
+
+          <p className="film-overview">
             {movie.overview}
           </p>
 
-          <div className="film-reviews">
-            <h3 className="section-title">POPULAR REVIEWS</h3>
-            {allReviews.map(rev => (
-              <div key={rev._id} className="review-card">
-                <div className="review-header">
-                  <div className="reviewer-avatar"></div>
-                  <span className="reviewer-name">Review by <strong style={{color: '#fff'}}>{rev.username || 'Anonymous'}</strong></span>
-                  <div className="stars">★★★★★</div>
-                </div>
-                <p className="review-text">{rev.review}</p>
-                
-                <div className="review-actions">
-                  <button className="like-review-btn" onClick={() => handleLikeReview(rev._id)}>
-                    ♥ Like review {rev.reviewLikes?.length > 0 ? `${rev.reviewLikes.length} likes` : ''}
-                  </button>
-                  <button className="reply-review-btn" onClick={() => handleReplyReview(rev._id)}>
-                    💬 Reply
-                  </button>
-                </div>
-                
-                {rev.replies && rev.replies.length > 0 && (
-                  <div className="review-replies">
-                    {rev.replies.map((reply, i) => (
-                      <div key={i} className="reply-item">
-                        <strong style={{color: '#8fa9b5'}}>{reply.username}:</strong> {reply.text}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {allReviews.length === 0 && <p style={{color: '#678', fontSize: '0.85rem'}}>No reviews yet. Be the first!</p>}
-          </div>
-        </div>
+          <div className="film-meta">
+            <span>
+              {movie.runtime
+                ? `${movie.runtime} mins`
+                : 'Runtime unavailable'}
+            </span>
 
-        <div className="film-actions-panel">
-          <div className="action-icons">
-            <button className="action-icon-btn" onClick={() => toggleInteraction('watched')}>
-              <span className="icon" style={{ color: interaction.watched ? '#00e054' : '', transform: interaction.watched ? 'scale(1.1)' : '' }}>👁</span>
-              <span className="label">Watched</span>
-            </button>
-            <button className="action-icon-btn" onClick={() => toggleInteraction('liked')}>
-              <span className="icon" style={{ color: interaction.liked ? '#ff8000' : '', transform: interaction.liked ? 'scale(1.1)' : '' }}>♥</span>
-              <span className="label">Liked</span>
-            </button>
-            <button className="action-icon-btn" onClick={() => toggleInteraction('watchlist')}>
-              <span className="icon" style={{ color: interaction.watchlist ? '#40bcf4' : '', transform: interaction.watchlist ? 'scale(1.1)' : '' }}>◷</span>
-              <span className="label">Watchlist</span>
-            </button>
+            <span>More at</span>
+
+            <a
+              href={`https://www.imdb.com/title/${movie.imdb_id || ''}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              IMDB
+            </a>
+
+            <a
+              href={`https://www.themoviedb.org/movie/${movie.id}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              TMDB
+            </a>
           </div>
-          
-          <div className="rating-section">
-            <span className="rating-label">Rated</span>
-            <div className="stars">
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
+
+          <div className="film-tabs">
+            <button className="active">
+              CAST
+            </button>
+
+            <button>CREW</button>
+            <button>DETAILS</button>
+            <button>GENRES</button>
+            <button>RELEASES</button>
+          </div>
+
+          <div className="people-section">
+            <div className="people-tags">
+              {cast.map(person => (
+                <span key={person.id}>
+                  {person.name}
+                </span>
+              ))}
             </div>
           </div>
-          
-          <div className="action-buttons">
-            <button className="panel-btn">Show your activity</button>
-            <button className="panel-btn" onClick={handleReview}>Review or log...</button>
-            <button className="panel-btn">Add to lists...</button>
-            <button className="panel-btn">Share</button>
+
+          {writers.length > 0 && (
+            <div className="writers-section">
+              <h3>WRITING</h3>
+
+              <div className="people-tags">
+                {writers.map((writer, index) => (
+                  <span
+                    key={`${writer.id}-${index}`}
+                  >
+                    {writer.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="genres-section">
+            <h3>GENRES</h3>
+
+            <div className="people-tags">
+              {movie.genres?.map(genre => (
+                <span key={genre.id}>
+                  {genre.name}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+
+          <section className="reviews-section">
+            <div className="section-heading">
+              <h2>POPULAR REVIEWS</h2>
+              <button>MORE</button>
+            </div>
+
+            {allReviews.slice(0, 3).map(review => (
+              <article
+                className="review-item"
+                key={review._id}
+              >
+                <div className="review-avatar">
+                  {(review.username || 'A')
+                    .charAt(0)
+                    .toUpperCase()}
+                </div>
+
+                <div className="review-body">
+                  <div className="review-top">
+                    <span>
+                      Review by{' '}
+                      <strong>
+                        {review.username ||
+                          'Anonymous'}
+                      </strong>
+                    </span>
+
+                    <span className="review-stars">
+                      {review.rating
+                        ? `${'★'.repeat(
+                            Math.floor(review.rating)
+                          )}${review.rating % 1 ? '½' : ''}`
+                        : '★★★★★'}
+                    </span>
+
+                    <button
+                      type="button"
+                      className="review-like"
+                      onClick={() =>
+                        handleLikeReview(
+                          review._id
+                        )
+                      }
+                    >
+                      ♥
+                    </button>
+
+                    <button
+                      type="button"
+                      className="review-comments"
+                      onClick={() =>
+                        handleReplyReview(
+                          review._id
+                        )
+                      }
+                    >
+                      ▰{' '}
+                      {review.replies?.length || 0}
+                    </button>
+                  </div>
+
+                  <p>{review.review}</p>
+
+                  <div className="review-likes">
+                    ♥{' '}
+                    {review.reviewLikes?.length || 0}{' '}
+                    likes
+                  </div>
+                </div>
+              </article>
+            ))}
+
+            {allReviews.length === 0 && (
+              <p className="no-reviews">
+                No reviews yet.
+              </p>
+            )}
+          </section>
+
+          <section className="reviews-section recent">
+            <div className="section-heading">
+              <h2>RECENT REVIEWS</h2>
+              <button>MORE</button>
+            </div>
+
+            {allReviews.slice(3, 6).map(review => (
+              <article
+                className="review-item"
+                key={review._id}
+              >
+                <div className="review-avatar">
+                  {(review.username || 'A')
+                    .charAt(0)
+                    .toUpperCase()}
+                </div>
+
+                <div className="review-body">
+                  <div className="review-top">
+                    <span>
+                      Review by{' '}
+                      <strong>
+                        {review.username ||
+                          'Anonymous'}
+                      </strong>
+                    </span>
+
+                    <span className="review-stars">
+                      {review.rating
+                        ? `${'★'.repeat(
+                            Math.floor(review.rating)
+                          )}${review.rating % 1 ? '½' : ''}`
+                        : '★★★★★'}
+                    </span>
+                  </div>
+
+                  <p>{review.review}</p>
+
+                  <div className="review-likes">
+                    ♥{' '}
+                    {review.reviewLikes?.length || 0}{' '}
+                    likes
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+
+          <section className="similar-section">
+            <div className="section-heading">
+              <h2>SIMILAR FILMS</h2>
+              <button>ALL</button>
+            </div>
+
+            {similarMovies.length > 0 ? (
+              <div className="similar-grid">
+                {similarMovies.map(similar => (
+                  <a
+                    key={similar.id}
+                    className="similar-film"
+                    href={`/film/${similar.id}`}
+                  >
+                    {similar.poster_path ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w342${similar.poster_path}`}
+                        alt={similar.title}
+                      />
+                    ) : (
+                      <div className="similar-placeholder">
+                        No poster
+                      </div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="similar-placeholder">
+                No similar films available.
+              </div>
+            )}
+          </section>
+        </section>
+
+        <aside className="film-right">
+  {token ? (
+    <button
+      className="signin-film-btn"
+      onClick={openReviewComposer}
+    >
+      Log, rate or review
+    </button>
+  ) : (
+    <button
+      className="signin-film-btn"
+      onClick={handleSignIn}
+    >
+      Sign in to log, rate or review
+    </button>
+  )}
+
+  <button className="share-film-btn">
+    Share
+  </button>
+
+          <div className="rating-summary">
+            <div className="rating-heading">
+              <span>RATINGS</span>
+
+              <span>
+                {formatCount(movie.vote_count)} VOTES
+              </span>
+            </div>
+
+            <div className="rating-content">
+              <div className="rating-histogram">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+
+              <div className="rating-number">
+                <strong>
+                  {movie.vote_average
+                    ? movie.vote_average.toFixed(1)
+                    : '0.0'}
+                </strong>
+
+                <div>★★★★★</div>
+              </div>
+            </div>
+          </div>
+        </aside>
       </main>
+
+      {showReviewComposer && (
+  <div
+    className="review-modal-backdrop"
+    onMouseDown={event => {
+      if (
+        event.target === event.currentTarget &&
+        !submittingReview
+      ) {
+        closeReviewComposer()
+      }
+    }}
+  >
+    <div className="review-modal">
+
+      <div className="review-modal-header">
+        <h2>I watched...</h2>
+
+        <button
+          type="button"
+          className="review-modal-close"
+          onClick={closeReviewComposer}
+          disabled={submittingReview}
+        >
+          ×
+        </button>
+      </div>
+
+      <form onSubmit={submitReview}>
+        <div className="review-modal-body">
+
+          <div className="review-poster-column">
+            {movie.poster_path && (
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={`${movie.title} poster`}
+              />
+            )}
+          </div>
+
+          <div className="review-form-area">
+
+            <div className="review-film-title">
+              {movie.title}
+              <span>
+                {movie.release_date?.split('-')[0]}
+              </span>
+            </div>
+
+            <div className="review-date-row">
+
+              <label className="check-option">
+                <input
+                  type="checkbox"
+                  checked={reviewWatched}
+                  onChange={event =>
+                    setReviewWatched(
+                      event.target.checked
+                    )
+                  }
+                />
+
+                <span>
+                  Watched on
+                </span>
+              </label>
+
+              <input
+                type="date"
+                value={reviewDate}
+                onChange={event =>
+                  setReviewDate(event.target.value)
+                }
+                disabled={!reviewWatched}
+              />
+
+              <label className="check-option">
+                <input
+                  type="checkbox"
+                  checked={reviewWatched}
+                  onChange={event =>
+                    setReviewWatched(
+                      event.target.checked
+                    )
+                  }
+                />
+
+                <span>
+                  I've watched this before
+                </span>
+              </label>
+
+            </div>
+
+            <textarea
+              className="letterboxd-review-input"
+              value={reviewText}
+              onChange={event =>
+                setReviewText(event.target.value)
+              }
+              placeholder="Add a review..."
+              disabled={submittingReview}
+            />
+
+            <div className="review-bottom-row">
+
+              <div className="review-tags">
+                <div className="review-control-title">
+                  Tags
+                </div>
+
+                <input
+                  value={reviewTags}
+                  onChange={event =>
+                    setReviewTags(event.target.value)
+                  }
+                  placeholder="eg. netflix"
+                  disabled={submittingReview}
+                />
+
+                <span className="tag-hint">
+                  Press Tab to complete, Enter to create
+                </span>
+              </div>
+
+              <div className="review-rating">
+                <div className="review-control-title">
+                  Rating
+                  <span>
+                    {reviewRating > 0
+                      ? `${reviewRating} out of 5`
+                      : ''}
+                  </span>
+                </div>
+
+                <div className="composer-stars">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      type="button"
+                      className={
+                        star <= reviewRating
+                          ? 'selected'
+                          : ''
+                      }
+                      onClick={() =>
+                        setReviewRating(star)
+                      }
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="review-like-control">
+
+                <div className="review-control-title">
+                  Like
+                </div>
+
+                <button
+                  type="button"
+                  className={
+                    reviewLiked ? 'liked' : ''
+                  }
+                  onClick={() =>
+                    setReviewLiked(
+                      previous => !previous
+                    )
+                  }
+                >
+                  ♥
+                </button>
+
+              </div>
+
+            </div>
+
+            <label className="spoiler-control">
+              <input
+                type="checkbox"
+                checked={reviewSpoiler}
+                onChange={event =>
+                  setReviewSpoiler(
+                    event.target.checked
+                  )
+                }
+              />
+
+              Contains spoilers
+            </label>
+
+          </div>
+
+        </div>
+
+        <div className="review-modal-footer">
+
+          <button
+            type="button"
+            className="review-cancel"
+            onClick={closeReviewComposer}
+            disabled={submittingReview}
+          >
+            CANCEL
+          </button>
+
+          <button
+            type="submit"
+            className="review-submit"
+            disabled={submittingReview}
+          >
+            {submittingReview
+              ? 'SAVING...'
+              : 'SAVE'}
+          </button>
+
+        </div>
+      </form>
+
+    </div>
+  </div>
+)}
     </div>
   )
 }
