@@ -1,20 +1,33 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import './Profile.css'
 
-function Profile() {
+function Profile({ defaultTab }) {
   const { username: paramUsername } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const token = localStorage.getItem('token')
   const storedUsername = localStorage.getItem('username')
   const username = paramUsername || storedUsername || 'adhin1234'
   const isOwner = Boolean(storedUsername && storedUsername.toLowerCase() === username.toLowerCase())
 
+  const isActivityRoute = Boolean(defaultTab === 'Activity' || location.pathname.endsWith('/activity') || location.search.includes('tab=activity'))
+  const [activeTab, setActiveTab] = useState(isActivityRoute ? 'Activity' : 'Profile')
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab)
+    } else if (location.pathname.endsWith('/activity') || location.search.includes('tab=activity')) {
+      setActiveTab('Activity')
+    } else if (location.pathname === '/profile' || location.pathname === `/${username}`) {
+      setActiveTab('Profile')
+    }
+  }, [defaultTab, location.pathname, location.search, username])
+
   const [loading, setLoading] = useState(true)
   const [profileData, setProfileData] = useState(null)
   const [movieDetailsMap, setMovieDetailsMap] = useState({})
-  const [activeTab, setActiveTab] = useState('Profile')
   const [isFollowing, setIsFollowing] = useState(false)
   const [isBlocked, setIsBlocked] = useState(false)
   const [moreMenuOpen, setMoreMenuOpen] = useState(false)
@@ -247,32 +260,6 @@ function Profile() {
   const ratingKeys = [1, 2, 3, 4, 5]
   const maxRatingCount = Math.max(1, ...ratingKeys.map(k => (ratingsMap[k] || 0) + (ratingsMap[k - 0.5] || 0)))
 
-  // Determine comments to display for featured list
-  const featuredComments = (featuredList?.comments && featuredList.comments.length > 0)
-    ? featuredList.comments
-    : [
-        {
-          _id: 'c1',
-          username: '_ur_human_lol',
-          time: '14h',
-          text: "@jack i feel like none of those points are really specific to documentaries though. if no other land's ratings are inflated for political reasons, then surely the same is true for the voice of hind rajab? if you can see everything's ratings are biased because they come from fielder's fans, surely the same is true for nirvana the band the show the movie?"
-        },
-        {
-          _id: 'c2',
-          username: 'Jack Moulton',
-          badge: 'CREW',
-          time: '11h',
-          text: "i don't think it's a mutually exclusive observation. You are right. But if docs would represent 10% of the top 500, then it's more prevalent across that 10% with a high impact."
-        },
-        {
-          _id: 'c3',
-          username: 'Dita 🇺🇦',
-          badge: 'CREW',
-          time: '10h',
-          text: "@dasha I've certainly watched 31/100 so far..."
-        }
-      ]
-
   return (
     <div className="profile-page">
       <Navbar />
@@ -477,12 +464,13 @@ function Profile() {
         {/* Subnav Tabs */}
         <div className="profile-subnav-row">
           <div className="profile-subnav-tabs">
-            <span
+            <Link
+              to={`/${user.username || username}`}
               className={`profile-tab ${activeTab === 'Profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('Profile')}
             >
               Profile
-            </span>
+            </Link>
 
             {isOfficial ? (
               <>
@@ -492,12 +480,13 @@ function Profile() {
                 >
                   Stories
                 </span>
-                <span
+                <Link
+                  to={`/${user.username || username}/activity`}
                   className={`profile-tab ${activeTab === 'Activity' ? 'active' : ''}`}
                   onClick={() => setActiveTab('Activity')}
                 >
                   Activity
-                </span>
+                </Link>
                 <Link to={`/${user.username || username}/lists`} className="profile-tab">
                   Lists
                 </Link>
@@ -507,7 +496,13 @@ function Profile() {
               </>
             ) : (
               <>
-                <span className="profile-tab">Activity</span>
+                <Link
+                  to={`/${user.username || username}/activity`}
+                  className={`profile-tab ${activeTab === 'Activity' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('Activity')}
+                >
+                  Activity
+                </Link>
                 <Link to={`/${username}/films`} className="profile-tab">Films</Link>
                 <Link to={`/${username}/diary`} className="profile-tab">Diary</Link>
                 <Link to={`/${username}/reviews`} className="profile-tab">Reviews</Link>
@@ -517,11 +512,6 @@ function Profile() {
                 <Link to={`/${username}/network`} className="profile-tab">Network</Link>
               </>
             )}
-          </div>
-
-          <div className="profile-subnav-actions">
-            <Link to="/search" className="subnav-circle-btn" title="Search">⌕</Link>
-            <button type="button" className="subnav-circle-btn" title="RSS Feed">🛈</button>
           </div>
         </div>
 
@@ -589,50 +579,99 @@ function Profile() {
                   </div>
                 )}
               </div>
-
-              {/* Right Column: Comments & Community Discussion */}
-              <aside className="featured-list-comments-sidebar">
-                <div className="comments-widget-header">
-                  <span className="comments-count-text">
-                    {featuredList.comments?.length ? `${featuredList.comments.length} COMMENTS OF 1641` : '20 COMMENTS OF 1641'}
-                  </span>
-                  <span className="comments-bell-icon">🔔</span>
-                </div>
-
-                <div className="comments-subtext-header">
-                  professional streaming release.<br />
-                  TV all the way.
-                </div>
-
-                <div className="featured-comments-list">
-                  {featuredComments.map((cmt, idx) => (
-                    <div key={cmt._id || idx} className="featured-comment-card">
-                      <div className="comment-avatar-bubble">
-                        {cmt.username ? cmt.username[0].toUpperCase() : 'U'}
-                      </div>
-                      <div className="comment-bubble-content">
-                        <div className="comment-meta-row">
-                          <span className="comment-user-title">{cmt.username}</span>
-                          {cmt.badge && <span className="comment-badge-crew">{cmt.badge}</span>}
-                          <span className="comment-timestamp">
-                            {cmt.time || formatRelativeTime(cmt.createdAt)}
-                          </span>
-                        </div>
-                        <p className="comment-message">{cmt.text}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </aside>
             </div>
           </section>
         )}
 
         {/* 2-Column Body Layout (Standard film activities: Favorite Films, Recent Likes, Recent Reviews, Watchlist, Diary, Ratings, Activity) */}
-        {(!featuredList || !isOfficial) && (
+        {(!featuredList || !isOfficial || activeTab === 'Activity') && (
           <div className="profile-columns">
-            {/* Main Left Column */}
-            <div className="profile-main-column">
+            {activeTab === 'Activity' ? (
+              <div className="profile-main-column">
+                <section className="profile-section">
+                  <div className="section-title-row">
+                    <span className="section-title">ALL ACTIVITY</span>
+                  </div>
+
+                  {activityTimeline && activityTimeline.length > 0 ? (
+                    <div className="profile-activity-stream">
+                      {activityTimeline.map((act) => {
+                        const movie = movieDetailsMap[String(act.movieId)]
+                        const title = movie?.title || `Film #${act.movieId}`
+                        const year = movie?.release_date ? movie.release_date.split('-')[0] : ''
+                        const poster = movie?.poster_path
+                        const filmUrl = `/film/${act.movieId}`
+
+                        return (
+                          <div key={act._id} className="activity-feed-entry">
+                            <Link to={filmUrl} className="activity-poster-wrap">
+                              {poster ? (
+                                <img
+                                  src={`https://image.tmdb.org/t/p/w185${poster}`}
+                                  alt={title}
+                                  className="activity-poster-img"
+                                />
+                              ) : (
+                                <div className="activity-poster-placeholder">🎞</div>
+                              )}
+                            </Link>
+
+                            <div className="activity-details-wrap">
+                              <div className="activity-headline">
+                                <span className="activity-user-badge">
+                                  {user.displayName || user.username || username}
+                                </span>{' '}
+                                <span className="activity-action-verb">
+                                  {act.review
+                                    ? 'reviewed'
+                                    : act.liked && act.rating
+                                    ? 'rated and liked'
+                                    : act.rating
+                                    ? 'rated'
+                                    : act.liked
+                                    ? 'liked'
+                                    : act.watchlist
+                                    ? 'added to watchlist'
+                                    : act.watched
+                                    ? 'watched'
+                                    : 'interacted with'}
+                                </span>{' '}
+                                <Link to={filmUrl} className="activity-film-name">
+                                  {title}
+                                </Link>
+                                {year && <span className="activity-film-year"> ({year})</span>}
+                              </div>
+
+                              <div className="activity-meta-line">
+                                {act.rating > 0 && (
+                                  <span className="activity-stars">{renderStars(act.rating)}</span>
+                                )}
+                                {act.liked && <span className="activity-heart">♥</span>}
+                                <span className="activity-date-text">
+                                  {formatRelativeTime(act.updatedAt)}
+                                </span>
+                              </div>
+
+                              {act.review && (
+                                <div className="activity-review-snippet">
+                                  <p>{act.review}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="profile-empty-section">
+                      <p>No activity yet. Watch, rate, like, or review films to see your activity here.</p>
+                    </div>
+                  )}
+                </section>
+              </div>
+            ) : (
+              /* Main Left Column */
+              <div className="profile-main-column">
               {/* FAVORITE FILMS */}
               <section className="profile-section">
                 <div className="section-title-row">
@@ -765,6 +804,7 @@ function Profile() {
                 )}
               </section>
             </div>
+            )}
 
             {/* Right Sidebar */}
             <aside className="profile-sidebar">
@@ -842,46 +882,48 @@ function Profile() {
                 </div>
               </div>
 
-              {/* Activity Timeline */}
-              <div className="sidebar-widget">
-                <div className="widget-header">
-                  <span className="widget-title">ACTIVITY</span>
-                </div>
-                <div className="activity-timeline-list">
-                  {activityTimeline.length > 0 ? (
-                    activityTimeline.slice(0, 6).map((act) => {
-                      const movie = movieDetailsMap[String(act.movieId)]
-                      const movieTitle = movie?.title || `Film #${act.movieId}`
-                      const timeAgo = formatRelativeTime(act.updatedAt)
+              {/* Activity Timeline (only shown on Profile tab) */}
+              {activeTab === 'Profile' && (
+                <div className="sidebar-widget">
+                  <div className="widget-header">
+                    <span className="widget-title">ACTIVITY</span>
+                  </div>
+                  <div className="activity-timeline-list">
+                    {activityTimeline.length > 0 ? (
+                      activityTimeline.slice(0, 6).map((act) => {
+                        const movie = movieDetailsMap[String(act.movieId)]
+                        const movieTitle = movie?.title || `Film #${act.movieId}`
+                        const timeAgo = formatRelativeTime(act.updatedAt)
 
-                      let actionText = 'interacted with'
-                      if (act.review && act.liked && act.rating) {
-                        actionText = `reviewed, liked and rated ${movieTitle} ${renderStars(act.rating)} on ${formatWeekdayDate(act.updatedAt)}`
-                      } else if (act.liked) {
-                        actionText = `liked ${movieTitle}`
-                      } else if (act.rating) {
-                        actionText = `rated ${movieTitle} ${renderStars(act.rating)}`
-                      } else if (act.watchlist) {
-                        actionText = `added ${movieTitle} to your watchlist`
-                      } else if (act.watched) {
-                        actionText = `watched ${movieTitle}`
-                      }
+                        let actionText = 'interacted with'
+                        if (act.review && act.liked && act.rating) {
+                          actionText = `reviewed, liked and rated ${movieTitle} ${renderStars(act.rating)} on ${formatWeekdayDate(act.updatedAt)}`
+                        } else if (act.liked) {
+                          actionText = `liked ${movieTitle}`
+                        } else if (act.rating) {
+                          actionText = `rated ${movieTitle} ${renderStars(act.rating)}`
+                        } else if (act.watchlist) {
+                          actionText = `added ${movieTitle} to your watchlist`
+                        } else if (act.watched) {
+                          actionText = `watched ${movieTitle}`
+                        }
 
-                      return (
-                        <div key={act._id} className="activity-item-row">
-                          <span className="activity-bullet">●</span>
-                          <p className="activity-text">
-                            You {actionText}{' '}
-                            <span className="activity-time">{timeAgo}</span>
-                          </p>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <p className="widget-empty-note">No recent activity.</p>
-                  )}
+                        return (
+                          <div key={act._id} className="activity-item-row">
+                            <span className="activity-bullet">●</span>
+                            <p className="activity-text">
+                              You {actionText}{' '}
+                              <span className="activity-time">{timeAgo}</span>
+                            </p>
+                          </div>
+                        )
+                      })
+                    ) : (
+                      <p className="widget-empty-note">No recent activity.</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </aside>
           </div>
         )}

@@ -192,6 +192,16 @@ function App() {
         />
 
         <Route
+          path="/profile/activity"
+          element={<Profile defaultTab="Activity" />}
+        />
+
+        <Route
+          path="/:username/activity"
+          element={<Profile defaultTab="Activity" />}
+        />
+
+        <Route
           path="/:username"
           element={<Profile />}
         />

@@ -340,6 +340,70 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// @route POST or DELETE /api/auth/deactivate
+// @desc Deactivate/delete user account and associated data
+const handleDeactivate = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const username = user.username;
+
+    // 1. Delete user interactions (ratings, reviews, watchlists, etc.)
+    await Interaction.deleteMany({ userId });
+
+    // 2. Delete user's created lists
+    await List.deleteMany({ userId });
+
+    // 3. Clean up followers / following / blockedUsers from other users
+    await User.updateMany(
+      {},
+      {
+        $pull: {
+          following: { $in: [username, userId] },
+          followers: { $in: [username, userId] },
+          blockedUsers: { $in: [username, userId] }
+        }
+      }
+    );
+
+    // 4. Delete the user document
+    await User.findByIdAndDelete(userId);
+
+    // 5. Update followersCount and sync followers for all remaining users
+    const remainingUsers = await User.find({});
+    for (const u of remainingUsers) {
+      const cleanFollowers = (u.followers || []).filter(id => id !== userId && id !== username);
+      const cleanFollowing = (u.following || []).filter(id => id !== userId && id !== username);
+      if (
+        (u.followers && u.followers.length !== cleanFollowers.length) ||
+        (u.following && u.following.length !== cleanFollowing.length) ||
+        u.followersCount !== cleanFollowers.length
+      ) {
+        u.followers = cleanFollowers;
+        u.followersCount = cleanFollowers.length;
+        u.following = cleanFollowing;
+        await u.save();
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Account successfully deactivated and deleted.'
+    });
+  } catch (err) {
+    console.error('Account deactivation error:', err);
+    res.status(500).json({ error: 'Failed to deactivate account' });
+  }
+};
+
+router.post('/deactivate', verifyToken, handleDeactivate);
+router.delete('/deactivate', verifyToken, handleDeactivate);
+router.delete('/account', verifyToken, handleDeactivate);
+
 // @route PUT /api/auth/settings
 // @desc Update user account settings and profile
 router.put('/settings', verifyToken, async (req, res) => {
@@ -482,10 +546,10 @@ router.get('/user/:username/summary', async (req, res) => {
     ratingsAgg.forEach(r => { ratingsMap[r._id] = r.count; });
     const totalRatings = ratingsAgg.reduce((acc, curr) => acc + curr.count, 0);
 
-    // 9. Activity timeline (recent 10 actions)
+    // 9. Activity timeline (recent 50 actions)
     const activityRaw = await Interaction.find({ userId })
       .sort({ updatedAt: -1 })
-      .limit(10);
+      .limit(50);
 
     const activityTimeline = activityRaw.map(item => {
       const actions = [];
@@ -517,9 +581,25 @@ router.get('/user/:username/summary', async (req, res) => {
       visibility: { $ne: 'private' }
     }).sort({ createdAt: -1 });
 
-    const listsCount = user.listsCount || userLists.length;
-    const followersCount = user.followersCount || user.followers?.length || 0;
-    const followingCount = user.following?.length || 0;
+    const listsCount = userLists.length;
+
+    // Fetch existing valid followers and following to ensure 100% sync
+    const existingFollowers = await User.find({ _id: { $in: user.followers || [] } }).select('_id');
+    const existingFollowing = await User.find({ _id: { $in: user.following || [] } }).select('_id');
+    const followersCount = existingFollowers.length;
+    const followingCount = existingFollowing.length;
+
+    // Auto-heal / sync in DB if counts or arrays were out of sync
+    if (
+      user.followersCount !== followersCount ||
+      (user.followers && user.followers.length !== followersCount) ||
+      (user.following && user.following.length !== followingCount)
+    ) {
+      user.followers = existingFollowers.map(f => f._id.toString());
+      user.followersCount = followersCount;
+      user.following = existingFollowing.map(f => f._id.toString());
+      await user.save();
+    }
 
     // Check viewer relationship
     let isFollowing = false;
@@ -787,6 +867,18 @@ router.get('/user/:username/network', async (req, res) => {
     const followersIds = user.followers || [];
     const followersUsers = await User.find({ _id: { $in: followersIds } })
       .select('_id username displayName bio location followers following badge');
+
+    // Self-healing: if any deleted users were in followers or following, clean them up
+    if (
+      (user.followers && user.followers.length !== followersUsers.length) ||
+      (user.following && user.following.length !== followingUsers.length) ||
+      user.followersCount !== followersUsers.length
+    ) {
+      user.followers = followersUsers.map(f => f._id.toString());
+      user.followersCount = followersUsers.length;
+      user.following = followingUsers.map(f => f._id.toString());
+      await user.save();
+    }
 
     // Fetch Blocked Members (Only owner can see their blocked list)
     let blockedUsers = [];

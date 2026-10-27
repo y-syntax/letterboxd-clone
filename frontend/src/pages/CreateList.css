@@ -737,6 +737,8 @@
 .row-actions button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
 .row-drag-handle {
   color: #556677;
   font-size: 1.1rem;

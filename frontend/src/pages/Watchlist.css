@@ -293,12 +293,6 @@
   font-size: 0.8rem;
   font-weight: 600;
   margin-bottom: 18px;
-  animation: fadeIn 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Empty State Box */
@@ -735,12 +729,6 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: modalPop 0.2s ease-out;
-}
-
-@keyframes modalPop {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 .import-modal-header {
@@ -862,12 +850,7 @@
   border: 2px solid rgba(0, 224, 84, 0.3);
   border-top-color: #00e054;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
   flex-shrink: 0;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .import-progress-text {

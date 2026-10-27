@@ -13,6 +13,8 @@ function Settings() {
   const [saving, setSaving] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false)
+  const [deactivating, setDeactivating] = useState(false)
 
   // Form Fields
   const [username, setUsername] = useState('')
@@ -124,6 +126,33 @@ function Settings() {
     }
   }
 
+  const handleDeactivateAccount = async () => {
+    try {
+      setDeactivating(true)
+      const res = await fetch('http://localhost:5000/api/auth/deactivate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await res.json()
+      if (res.ok) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('username')
+        alert('Your account has been successfully deactivated.')
+        window.location.href = '/'
+      } else {
+        alert(data.error || data.message || 'Failed to deactivate account')
+        setDeactivating(false)
+      }
+    } catch (err) {
+      console.error('Deactivation error:', err)
+      alert('An error occurred while deactivating your account.')
+      setDeactivating(false)
+    }
+  }
+
   // Search TMDB for movie modal
   useEffect(() => {
     if (!searchQuery.trim() || activeSlotIndex === null) {
@@ -196,7 +225,11 @@ function Settings() {
     </span>
   </div>
 
-  <button type="button" className="deactivate-link">
+  <button 
+    type="button" 
+    className="deactivate-link"
+    onClick={() => setShowDeactivateModal(true)}
+  >
     Deactivate account
   </button>
 </div>
@@ -492,6 +525,50 @@ function Settings() {
               {!searchLoading && searchQuery.trim() && searchResults.length === 0 && (
                 <div className="fav-no-results">No movies found for "{searchQuery}".</div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Deactivate Account Confirmation Modal */}
+      {showDeactivateModal && (
+        <div className="fav-modal-backdrop" onClick={() => !deactivating && setShowDeactivateModal(false)}>
+          <div className="deactivate-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="deactivate-modal-header">
+              <span className="deactivate-modal-title">DEACTIVATE ACCOUNT</span>
+              <button
+                type="button"
+                className="fav-modal-close"
+                onClick={() => !deactivating && setShowDeactivateModal(false)}
+                disabled={deactivating}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="deactivate-modal-body">
+              <p className="deactivate-warning-text">
+                Are you sure you want to deactivate your account?
+              </p>
+              <p className="deactivate-details-text">
+                This action is permanent and cannot be undone. All your ratings, reviews, diary logs, lists, and account settings will be permanently erased.
+              </p>
+            </div>
+            <div className="deactivate-modal-actions">
+              <button
+                type="button"
+                className="deactivate-cancel-btn"
+                onClick={() => setShowDeactivateModal(false)}
+                disabled={deactivating}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="deactivate-confirm-btn"
+                onClick={handleDeactivateAccount}
+                disabled={deactivating}
+              >
+                {deactivating ? 'Deactivating...' : 'Yes, Deactivate Account'}
+              </button>
             </div>
           </div>
         </div>

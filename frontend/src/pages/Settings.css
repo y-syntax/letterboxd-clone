@@ -631,3 +631,95 @@
     grid-template-columns: repeat(4, 80px);
   }
 }
+
+/* Deactivate Account Modal */
+.deactivate-modal-card {
+  background-color: #1a2228;
+  border: 1px solid #303c48;
+  border-radius: 6px;
+  width: 90%;
+  max-width: 460px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.deactivate-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #283440;
+}
+
+.deactivate-modal-title {
+  color: #ff5555;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+.deactivate-modal-body {
+  padding: 20px;
+}
+
+.deactivate-warning-text {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.deactivate-details-text {
+  color: #8fa2b0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.deactivate-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  background-color: #141b20;
+  border-top: 1px solid #283440;
+}
+
+.deactivate-cancel-btn {
+  background: transparent;
+  border: 1px solid #456;
+  color: #9ab;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.deactivate-cancel-btn:hover {
+  border-color: #89a;
+  color: #fff;
+}
+
+.deactivate-confirm-btn {
+  background: #e53935;
+  border: none;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deactivate-confirm-btn:hover:not(:disabled) {
+  background: #d32f2f;
+}
+
+.deactivate-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

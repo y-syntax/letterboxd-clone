@@ -574,12 +574,6 @@ function UserReviews() {
                 </div>
               )}
             </div>
-
-            {/* Eye filter icon */}
-            <span className="reviews-eye-icon" title="View Options">👁 ⌵</span>
-
-            {/* Remove ads notice matching Screenshot 1 */}
-            <span className="reviews-remove-ads">REMOVE ADS ✕</span>
           </div>
         </div>
 

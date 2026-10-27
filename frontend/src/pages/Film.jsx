@@ -59,6 +59,13 @@ function Film() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [showActivityDetails, setShowActivityDetails] = useState(false)
 
+  // Watch providers & Trailer states
+  const [watchProviders, setWatchProviders] = useState([])
+  const [showAllProviders, setShowAllProviders] = useState(false)
+  const [trailerKey, setTrailerKey] = useState(null)
+  const [trailerTitle, setTrailerTitle] = useState('')
+  const [showTrailerModal, setShowTrailerModal] = useState(false)
+
   const token = localStorage.getItem('token')
   const username = localStorage.getItem('username') || 'adhin1234'
 
@@ -286,11 +293,32 @@ function Film() {
       .catch(() => setAllReviews([]))
   }
 
+  const handleOpenTrailer = () => {
+    if (trailerKey) {
+      setShowTrailerModal(true)
+    } else if (movie?.title) {
+      window.open(
+        `https://www.youtube.com/results?search_query=${encodeURIComponent(movie.title + ' official trailer')}`,
+        '_blank'
+      )
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowTrailerModal(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   useEffect(() => {
     const fetchMovie = async () => {
       try {
         const response = await fetch(
-          `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits,release_dates,keywords`
+          `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${import.meta.env.VITE_TMDB_API_KEY}&append_to_response=credits,release_dates,keywords,videos,watch/providers`
         )
 
         const data = await response.json()
@@ -302,6 +330,95 @@ function Film() {
         }
 
         setMovie(data)
+
+        // 1. Extract Official Trailer / Teaser video
+        const videos = data.videos?.results || []
+        const officialTrailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer' && v.official)
+        const anyTrailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer')
+        const teaser = videos.find(v => v.site === 'YouTube' && v.type === 'Teaser')
+        const anyYouTube = videos.find(v => v.site === 'YouTube')
+        const chosenVideo = officialTrailer || anyTrailer || teaser || anyYouTube
+        if (chosenVideo) {
+          setTrailerKey(chosenVideo.key)
+          setTrailerTitle(chosenVideo.name || `${data.title} Trailer`)
+        } else {
+          setTrailerKey(null)
+          setTrailerTitle(`${data.title} Trailer`)
+        }
+
+        // 2. Extract Watch Providers
+        const wpResults = data['watch/providers']?.results || {}
+        const extracted = []
+        const seen = new Set()
+
+        const addFromCountry = (code) => {
+          const cData = wpResults[code]
+          if (!cData) return
+          const link = cData.link || `https://www.themoviedb.org/movie/${data.id}/watch?locale=${code}`
+
+          // Flatrate (Streaming / Subscription)
+          if (Array.isArray(cData.flatrate)) {
+            cData.flatrate.forEach(p => {
+              const key = `${p.provider_name}-${code}-PLAY`
+              if (!seen.has(key)) {
+                seen.add(key)
+                extracted.push({
+                  id: p.provider_id,
+                  name: p.provider_name,
+                  country: code,
+                  badges: ['PLAY'],
+                  icon: '●',
+                  link
+                })
+              }
+            })
+          }
+
+          // Rent & Buy
+          const rentMap = new Map((cData.rent || []).map(p => [p.provider_name, p]))
+          const buyMap = new Map((cData.buy || []).map(p => [p.provider_name, p]))
+          const allNames = Array.from(new Set([...rentMap.keys(), ...buyMap.keys()]))
+
+          allNames.forEach(name => {
+            const hasRent = rentMap.has(name)
+            const hasBuy = buyMap.has(name)
+            const key = `${name}-${code}-RENTBUY`
+            if (!seen.has(key)) {
+              seen.add(key)
+              extracted.push({
+                id: (rentMap.get(name) || buyMap.get(name))?.provider_id,
+                name,
+                country: code,
+                badges: [hasRent && 'RENT', hasBuy && 'BUY'].filter(Boolean),
+                icon: '▶',
+                link
+              })
+            }
+          })
+        }
+
+        // Priority regions
+        addFromCountry('IN')
+        addFromCountry('US')
+        if (extracted.length < 5) {
+          ['GB', 'CA', 'AU'].forEach(addFromCountry)
+        }
+
+        // Fallback popular platforms if empty
+        if (extracted.length === 0) {
+          const searchTitle = encodeURIComponent(data.title || '')
+          extracted.push(
+            { name: 'Google Play', country: 'IN', badges: ['BUY'], icon: '▶', link: `https://play.google.com/store/search?q=${searchTitle}&c=movies` },
+            { name: 'Google Play', country: 'US', badges: ['RENT', 'BUY'], icon: '▶', link: `https://play.google.com/store/search?q=${searchTitle}&c=movies` },
+            { name: 'Amazon Video', country: 'US', badges: ['RENT', 'BUY'], icon: '●', link: `https://www.amazon.com/s?k=${searchTitle}&i=instant-video` },
+            { name: 'Netflix', country: 'IN', badges: ['PLAY'], icon: '●', link: `https://www.netflix.com/search?q=${searchTitle}` },
+            { name: 'Apple TV', country: 'US', badges: ['RENT', 'BUY'], icon: '▶', link: `https://tv.apple.com/search?term=${searchTitle}` },
+            { name: 'YouTube Movies', country: 'IN', badges: ['BUY'], icon: '▶', link: `https://www.youtube.com/results?search_query=${searchTitle}+movie` },
+            { name: 'Disney+ Hotstar', country: 'IN', badges: ['PLAY'], icon: '●', link: `https://www.hotstar.com/search?q=${searchTitle}` }
+          )
+        }
+
+        setWatchProviders(extracted)
       } catch (error) {
         console.error('Movie fetch error:', error)
       }
@@ -757,40 +874,46 @@ function Film() {
             <div className="watch-header">
               <span>WHERE TO WATCH</span>
 
-              <button type="button">
+              <button 
+                type="button" 
+                className="trailer-watch-btn"
+                onClick={handleOpenTrailer}
+                title={trailerKey ? "Watch Official Trailer" : "Search Trailer on YouTube"}
+              >
                 ▶ Trailer
               </button>
             </div>
 
-            <div className="watch-row">
-              <span>▶ Google Play</span>
-              <small>IN</small>
-              <b>BUY</b>
+            <div className="watch-list-rows">
+              {(showAllProviders ? watchProviders : watchProviders.slice(0, 4)).map((item, idx) => (
+                <a
+                  key={`${item.name}-${item.country}-${idx}`}
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="watch-row"
+                  title={`Watch on ${item.name} (${item.country})`}
+                >
+                  <span className="watch-provider-name">
+                    <span className="provider-icon">{item.icon || '▶'}</span> {item.name}
+                  </span>
+                  <small className="watch-country-code">{item.country}</small>
+                  {item.badges.map(b => (
+                    <b key={b} className={`watch-badge ${b.toLowerCase()}`}>{b}</b>
+                  ))}
+                </a>
+              ))}
             </div>
 
-            <div className="watch-row">
-              <span>▶ Google Play</span>
-              <small>US</small>
-              <b>RENT</b>
-              <b>BUY</b>
-            </div>
-
-            <div className="watch-row">
-              <span>● Amazon Video</span>
-              <small>US</small>
-              <b>RENT</b>
-              <b>BUY</b>
-            </div>
-
-            <div className="watch-row">
-              <span>● Netflix</span>
-              <small>IN</small>
-              <b>PLAY</b>
-            </div>
-
-            <div className="watch-more">
-              Show 3 more
-            </div>
+            {watchProviders.length > 4 && (
+              <button 
+                type="button"
+                className="watch-more-btn"
+                onClick={() => setShowAllProviders(!showAllProviders)}
+              >
+                {showAllProviders ? 'Show less ▴' : `Show ${watchProviders.length - 4} more ▾`}
+              </button>
+            )}
           </div>
         </aside>
 
@@ -1975,6 +2098,42 @@ function Film() {
               >
                 DONE
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trailer Video Modal */}
+      {showTrailerModal && trailerKey && (
+        <div
+          className="trailer-modal-backdrop"
+          onClick={() => setShowTrailerModal(false)}
+        >
+          <div
+            className="trailer-modal-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="trailer-modal-header">
+              <span className="trailer-modal-title">
+                {movie.title} — {trailerTitle || 'Official Trailer'}
+              </span>
+              <button
+                type="button"
+                className="trailer-modal-close"
+                onClick={() => setShowTrailerModal(false)}
+                title="Close trailer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="trailer-video-responsive">
+              <iframe
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&rel=0`}
+                title={`${movie.title} Trailer`}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>

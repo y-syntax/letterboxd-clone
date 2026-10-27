@@ -340,6 +340,7 @@
   font-weight: 600;
   text-decoration: none;
   padding-bottom: 4px;
+  cursor: pointer;
   transition: color 0.15s;
 }
 
@@ -1260,4 +1261,130 @@
   font-size: 0.73rem;
   line-height: 1.4;
   margin: 0;
+}
+
+/* ========================================================
+   Activity Stream Tab
+   ======================================================== */
+.profile-activity-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.activity-feed-entry {
+  display: flex;
+  gap: 14px;
+  background-color: #1a222a;
+  border: 1px solid #283340;
+  border-radius: 4px;
+  padding: 12px 14px;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.activity-feed-entry:hover {
+  border-color: #3b4d5e;
+  background-color: #1e2832;
+}
+
+.activity-poster-wrap {
+  width: 52px;
+  height: 78px;
+  border-radius: 3px;
+  overflow: hidden;
+  background-color: #14181c;
+  flex-shrink: 0;
+  display: block;
+}
+
+.activity-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.activity-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #678;
+  font-size: 1.1rem;
+}
+
+.activity-details-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.activity-headline {
+  color: #8fa9b5;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.activity-user-badge {
+  color: #fff;
+  font-weight: 700;
+}
+
+.activity-action-verb {
+  color: #9ab;
+}
+
+.activity-film-name {
+  color: #40bcf4;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.activity-film-name:hover {
+  color: #00e054;
+}
+
+.activity-film-year {
+  color: #678;
+  font-size: 0.78rem;
+}
+
+.activity-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.activity-stars {
+  color: #00e054;
+  letter-spacing: 1px;
+}
+
+.activity-heart {
+  color: #ff8000;
+  font-size: 0.85rem;
+}
+
+.activity-date-text {
+  color: #556677;
+}
+
+.activity-review-snippet {
+  margin-top: 4px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-left: 2px solid #00e054;
+  padding: 6px 10px;
+  border-radius: 0 3px 3px 0;
+}
+
+.activity-review-snippet p {
+  margin: 0;
+  color: #bcccd6;
+  font-size: 0.8rem;
+  line-height: 1.4;
 }

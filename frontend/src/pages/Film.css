@@ -118,67 +118,207 @@
 .watch-panel {
   border: 1px solid #313c45;
   background: #171d21;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 14px;
 }
 
 .watch-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 12px;
-
+  padding: 10px 12px;
   background: #2c3440;
-
   color: #9ab;
-
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
-.watch-header button {
+.watch-header .trailer-watch-btn {
   border: 0;
   background: transparent;
-  color: #9ab;
+  color: #40bcf4;
   cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.watch-header .trailer-watch-btn:hover {
+  color: #00e054;
+  background: rgba(0, 224, 84, 0.1);
+  transform: scale(1.04);
+}
+
+.watch-list-rows {
+  display: flex;
+  flex-direction: column;
 }
 
 .watch-row {
   display: flex;
   align-items: center;
-  gap: 7px;
-
-  padding: 12px;
-
-  border-bottom: 1px solid #29333b;
-
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #232c35;
   font-size: 0.73rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.watch-row span {
+.watch-row:hover {
+  background-color: #212932;
+}
+
+.watch-row:last-child {
+  border-bottom: none;
+}
+
+.watch-row .watch-provider-name {
   flex: 1;
-  color: #a0adb5;
+  color: #c0cfd9;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
 }
 
-.watch-row small {
-  color: #82929d;
+.watch-row:hover .watch-provider-name {
+  color: #ffffff;
 }
 
-.watch-row b {
-  padding: 2px 5px;
+.watch-row .provider-icon {
+  font-size: 0.65rem;
+  color: #6a7c8c;
+}
 
-  color: #82929d;
+.watch-row .watch-country-code {
+  color: #728492;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.watch-row .watch-badge {
+  padding: 2px 6px;
+  color: #8fa2ad;
   font-size: 0.6rem;
-
-  border: 1px solid #47535c;
+  font-weight: 700;
+  border: 1px solid #414f5c;
   border-radius: 3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.watch-more {
-  padding: 12px;
+.watch-row .watch-badge.play {
+  color: #00e054;
+  border-color: rgba(0, 224, 84, 0.4);
+  background-color: rgba(0, 224, 84, 0.08);
+}
 
+.watch-more-btn {
+  width: 100%;
+  padding: 10px 12px;
+  background: #14191d;
+  border: none;
+  border-top: 1px solid #242c34;
   color: #40bcf4;
-
   font-size: 0.72rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+}
+
+.watch-more-btn:hover {
+  background: #1c242c;
+  color: #ffffff;
+}
+
+/* Trailer Video Modal */
+.trailer-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 14, 18, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  padding: 20px;
+}
+
+.trailer-modal-content {
+  background-color: #171c22;
+  border: 1px solid #2d3844;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 860px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+.trailer-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #242c35;
+  background: #14181d;
+}
+
+.trailer-modal-title {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailer-modal-close {
+  background: none;
+  border: none;
+  color: #789;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.trailer-modal-close:hover {
+  color: #ff5555;
+}
+
+.trailer-video-responsive {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  background: #000;
+}
+
+.trailer-video-responsive iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* MAIN CONTENT */

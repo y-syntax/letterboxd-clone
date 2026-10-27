@@ -132,7 +132,6 @@ function Navbar() {
                     <Link to={`/${username.toLowerCase()}/lists`} onClick={() => setDropdownOpen(false)}>Lists</Link>
                     <Link to={`/${username.toLowerCase()}/likes`} onClick={() => setDropdownOpen(false)}>Likes</Link>
                     <Link to={`/${username.toLowerCase()}/network`} onClick={() => setDropdownOpen(false)}>Network</Link>
-                    <a href="#">Video Store rentals</a>
                     <div className="divider"></div>
                     <Link to="/settings" onClick={() => setDropdownOpen(false)}>Settings</Link>
                     <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>Sign Out</a>
